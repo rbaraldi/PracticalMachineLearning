@@ -7,7 +7,7 @@ output: html_document
 
 In this project assignment we´ll briefly analyse an amount of data about Human Activity Recognition (HAR), more specificaly the  quantified self movement. The goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
 
-All the data will be provide by HAR Project (http://groupware.les.inf.puc-rio.br/har).
+All the data will be provided by HAR Project (http://groupware.les.inf.puc-rio.br/har).
 
 # Getting and Cleaning Data
 
