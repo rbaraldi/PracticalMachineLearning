@@ -1,0 +1,101 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Raul Baraldi"
+date: "Saturday, June 20, 2015"
+output: html_document
+---
+
+In this project assignment we´ll briefly analyse an amount of data about Human Activity Recognition (HAR), more specificaly the  quantified self movement. The goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
+
+All the data will be provide by HAR Project (http://groupware.les.inf.puc-rio.br/har).
+
+# Getting and Cleaning Data
+
+Loading the `pml-training.csv` and `pml-testing.csw`, which will be used, respectively, as training/test sets to the model and data set to submit to the 20 test cases (Course Project: Submission).  
+
+```{r, results='hide', warning=FALSE, error=FALSE, echo=TRUE, message=FALSE}
+library(doParallel)
+library(randomForest)
+library(e1071)
+library(caret)
+library(rattle)
+library(caret)
+library(ggplot2)
+
+set.seed(20150619)
+
+#download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', 'pml-training.csv')
+#download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv','pml-testing.csv' )
+
+trainingSet   <- read.csv('pml-training.csv', na.strings=c("NA","#DIV/0!", ""))
+testSet       <- read.csv('pml-testing.csv' , na.strings=c("NA", "#DIV/0!", ""))
+
+selectedVar    <- which((colSums(!is.na(trainingSet)) >= 0.6*nrow(trainingSet)))
+trainingSet <- trainingSet[,selectedVar]
+testSet     <- testSet[,selectedVar]
+
+# Some adjustments to better fit RF
+testSet <- testSet[-ncol(testSet)]
+testSet$new_window <- factor(testSet$new_window, levels=c("no","yes"))
+
+trainingSet <- trainingSet[,-c(1,5)]
+testSet     <- testSet[,-c(1,5)]
+```
+
+# Defining training and test sets
+
+Creating training sets and test sets by partition the `trainingSet` data set using the rate of 60% for training and 40% for testing.
+
+```{r, results='hide', warning=FALSE, error=FALSE, echo=TRUE, message=FALSE}
+inTraining  <- createDataPartition(trainingSet$classe, p = 0.6, list = FALSE)
+training    <- trainingSet[inTraining, ]
+testing     <- trainingSet[-inTraining, ]
+```
+
+# Algorithm and Model Fit
+
+In this case we´ll perform using the Random Forest algorithm to fit our model. In this case, during the fitting process the algorithm perform cross-validation to the get an unbiased estimate of data set error. So, no extra out explicity cross-validation will be necessary.
+
+```{r, results='hide', warning=FALSE, error=FALSE, echo=TRUE, message=FALSE}
+class <- training$classe
+data  <- training[-ncol(training)]
+rforest <- train(data, class, method="parRF", 
+            tuneGrid=data.frame(mtry=3), 
+            trControl=trainControl(method="none"))
+```
+
+
+```{r, echo=FALSE, warning=FALSE, error=FALSE}
+rforest
+```
+
+# Confusion Matrix
+
+Generating a confusion matrix for the test and also check the accuracy of it:
+
+```{r, warning=FALSE, error=FALSE}
+predTestSet <- predict(rforest, newdata=testing)
+confusionM <- confusionMatrix(predTestSet,testing$classe)
+
+confusionM
+
+confusionM$overall[1]
+```
+
+# Course Submission Step
+
+For the submission step, it goes as follow:
+
+```{r, warning=FALSE, error=FALSE}
+registerDoParallel()
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+answers <- predict(rforest, testSet)
+pml_write_files(answers)
+```
