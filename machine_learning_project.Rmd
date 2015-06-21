@@ -1,8 +1,8 @@
 ---
 title: "Practical Machine Learning - Course Project"
-author: "Raul Baraldi"
+author: "https://github.com/rbaraldi"
 date: "Saturday, June 20, 2015"
-output: html_document
+output: html_document 
 ---
 
 In this project assignment we´ll briefly analyse an amount of data about Human Activity Recognition (HAR), more specificaly the  quantified self movement. The goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
@@ -97,5 +97,6 @@ pml_write_files = function(x){
 }
 
 answers <- predict(rforest, testSet)
+# Generating the 20 result files
 pml_write_files(answers)
 ```
